@@ -34,7 +34,8 @@ class SpacialDiffEquation(abc.ABC):
             result += np.array(self.diff_eq(t, *concentrations), dtype=float)
             for i in range(self.chemical_count):
                 padded = np.pad(concentrations[i], pad_width=(self.diffusion_kernel.shape[0]-1)//2, mode='edge')
-                result[i, :, :] += scipy.signal.fftconvolve(padded, self.diffusion_kernel, mode='valid') * self.diffusion_rates[i]
+                convolved = scipy.signal.fftconvolve(padded, self.diffusion_kernel, mode='valid')
+                result[i, :, :] += convolved * self.diffusion_rates[i]
             return result.reshape(self.chemical_count*self.width*self.height)
 
         solution = scipy.integrate.odeint(diff_eq, y0=y0, t=time_steps)
