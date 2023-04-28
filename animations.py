@@ -23,13 +23,13 @@ def temp_print(array, scale=1.):
     print(builder.getvalue())
 
 
-def grid_animation(values, ds, width, height, t_end, dt, video_frame_rate, video_t_per_second, filename):
+def grid_animation(values, ds, width, height, dt, video_frame_rate, video_t_per_second, filename):
 
     def anim_func(frame):
-        density.set_array(values[frame, :, :].ravel())
+        density.set_array(values[round(frame/video_frame_rate*video_t_per_second/dt), :, :].ravel())
         return density,
 
-    tot_frames = values.shape[0]
+    tot_frames = round(values.shape[0]*dt/video_t_per_second*video_frame_rate)
 
     u = np.arange(0, width*ds, ds)
     v = np.arange(0, height*ds, ds)

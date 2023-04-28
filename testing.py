@@ -39,18 +39,23 @@ def old_testing():
         height=30,
         ds=0.1,
         diffusion_kernel=DIFFUSE_CONVOLVE,
-        xy_diffusion_rate=0.025,
-        alpha=1,
+        xy_diffusion_rate=0.0025,
+        alpha=5,
         beta=1
     )
     x0 = np.random.rand(model.width, model.height)*2
     y0 = np.zeros((model.width, model.height), dtype=float)
-    t_end = 10
+    y0[15, 15] = 10
+    t_end = 40
     dt = 0.01
+    video_frame_rate = 30
+    video_t_per_second = 1
+    output_folder = "output"
 
     solution = model.solve((x0, y0), t_end, dt)
 
-    grid_animation(solution[:, 1, :, :], dt, model.ds)
+    grid_animation(solution[:, 1, :, :], model.ds, model.width, model.height, dt, video_frame_rate, video_t_per_second,
+                   os.path.join(output_folder, "old_test.gif"))
 
 
 @dataclass(frozen=True)
@@ -60,6 +65,10 @@ class ChemOscTest:
     init_q: np.ndarray
 
 
+def horizontal_gradient(width, height, start, end):
+    return np.linspace(np.repeat(start, height), np.repeat(end, height), num=width, dtype=float)
+
+
 def main():
     model = ChemicalClock(
         width=30,
@@ -67,12 +76,12 @@ def main():
         ds=0.1,
         p_diffusion_rate=0,
         q_diffusion_rate=0,
-        xy_diffusion_rate=0.1,
+        xy_diffusion_rate=0.001,
         diffusion_kernel=DIFFUSE_CONVOLVE,
         alpha_per_q=1,
         beta_per_p_squared=1
     )
-    t_end = 10
+    t_end = 40
     dt = 0.01
     video_frame_rate = 30
     video_t_per_second = 1
@@ -84,16 +93,23 @@ def main():
     tests = [
         ChemOscTest(file_name="test_1.gif",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
-                    init_q=1*np.ones((model.width, model.height), dtype=float)),
+                    init_q=5*np.ones((model.width, model.height), dtype=float)),
         ChemOscTest(file_name="test_2.gif",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
-                    init_q=5*np.ones((model.width, model.height), dtype=float))
+                    init_q=horizontal_gradient(model.width, model.height, 0, 10)),
+        ChemOscTest(file_name="test_3.gif",
+                    init_p=1*np.ones((model.width, model.height), dtype=float),
+                    init_q=5*np.ones((model.width, model.height), dtype=float)
+                            + 0.1*np.random.rand(model.width, model.height))
     ]
+
+    if not os.path.exists(output_folder):
+        os.mkdir(output_folder)
 
     for test in tests:
         solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
         grid_animation(solution[:, 3, :, :], model.ds, model.width, model.height,
-                       t_end, dt, video_frame_rate, video_t_per_second,
+                       dt, video_frame_rate, video_t_per_second,
                        os.path.join(output_folder, test.file_name))
 
 
