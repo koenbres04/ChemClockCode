@@ -1,4 +1,7 @@
 from io import StringIO
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import numpy as np
 
 
 def temp_print(array, scale=1.):
@@ -20,9 +23,30 @@ def temp_print(array, scale=1.):
     print(builder.getvalue())
 
 
-def grid_animation(values, dt):
-    # temporary  lasse doe dit
-    for i, grid in enumerate(values):
-        print(" ")
-        print(f"t = {i*dt:2f}")
-        temp_print(grid, scale=0.25)
+def grid_animation(values, ds, width, height, t_end, dt, video_frame_rate, video_t_per_second, filename):
+
+    def anim_func(frame):
+        density.set_array(values[frame, :, :].ravel())
+        return density,
+
+    tot_frames = values.shape[0]
+
+    u = np.arange(0, width*ds, ds)
+    v = np.arange(0, height*ds, ds)
+
+    fig, ax = plt.subplots()
+    density = ax.pcolormesh(u, v, values[0, :, :], cmap="viridis", shading="auto",
+                            vmin=np.min(values),
+                            vmax=np.max(values))
+    fig.colorbar(density)
+
+    anim = animation.FuncAnimation(fig, anim_func,
+                                   frames=tot_frames,
+                                   blit=True)
+    anim.save(filename, writer='ffmpeg', fps=video_frame_rate)
+
+
+
+
+
+
