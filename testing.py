@@ -55,7 +55,7 @@ def old_testing():
     solution = model.solve((x0, y0), t_end, dt)
 
     grid_animation(solution[:, 1, :, :], model.ds, model.width, model.height, dt, video_frame_rate, video_t_per_second,
-                   os.path.join(output_folder, "old_test.gif"))
+                   os.path.join(output_folder, "old_test.mp4"))
 
 
 @dataclass(frozen=True)
@@ -91,16 +91,16 @@ def main():
     y0 = np.zeros((model.width, model.height), dtype=float)
 
     tests = [
-        ChemOscTest(file_name="test_1.gif",
+        ChemOscTest(file_name="test_1.mp4",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=5*np.ones((model.width, model.height), dtype=float)),
-        ChemOscTest(file_name="test_2.gif",
+        ChemOscTest(file_name="test_2.mp4",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=horizontal_gradient(model.width, model.height, 0, 10)),
-        ChemOscTest(file_name="test_3.gif",
+        ChemOscTest(file_name="test_3.mp4",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=5*np.ones((model.width, model.height), dtype=float)
-                            + 0.1*np.random.rand(model.width, model.height))
+                    + 0.1*np.random.rand(model.width, model.height))
     ]
 
     if not os.path.exists(output_folder):
