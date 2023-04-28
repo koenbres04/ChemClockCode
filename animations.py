@@ -15,7 +15,6 @@ def grid_animation(values, ds, width, height, dt, t_end, video_frame_rate, video
 
     u = np.arange(0, width*ds, ds)
     v = np.arange(0, height*ds, ds)
-
     density = ax.pcolormesh(u, v, values[0, :, :], cmap="viridis", shading="auto",
                             vmin=np.min(values),
                             vmax=np.max(values))
