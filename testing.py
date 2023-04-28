@@ -4,8 +4,8 @@ from animations import grid_animation
 
 
 class BasicChemClock(SpacialDiffEquation):
-    def __init__(self, width, height, diffusion_kernel, xy_diffusion_rate, alpha, beta):
-        super().__init__(width, height, diffusion_kernel, 2, 2*(xy_diffusion_rate,))
+    def __init__(self, width, height, ds, diffusion_kernel, xy_diffusion_rate, alpha, beta):
+        super().__init__(width, height, ds, diffusion_kernel, 2, 2*(xy_diffusion_rate,))
         self.alpha = alpha
         self.beta = beta
 
@@ -17,6 +17,7 @@ def main():
     model = BasicChemClock(
         width=30,
         height=30,
+        ds=0.1,
         diffusion_kernel=DIFFUSE_CONVOLVE,
         xy_diffusion_rate=0.025,
         alpha=1,
@@ -29,7 +30,7 @@ def main():
 
     solution = model.solve((x0, y0), t_end, dt)
 
-    grid_animation(solution[::10, 1, :, :], 10*dt)
+    grid_animation(solution[:, 1, :, :], dt, model.ds)
 
 
 if __name__ == '__main__':

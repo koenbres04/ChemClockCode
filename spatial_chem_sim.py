@@ -13,9 +13,10 @@ DIFFUSE_CONVOLVE = np.array([
 
 
 class SpacialDiffEquation(abc.ABC):
-    def __init__(self, width, height, diffusion_kernel, chemical_count, diffusion_rates):
+    def __init__(self, width, height, ds, diffusion_kernel, chemical_count, diffusion_rates):
         self.width = width
         self.height = height
+        self.ds = ds
         self.diffusion_kernel = diffusion_kernel
         self.chemical_count = chemical_count
         self.diffusion_rates = diffusion_rates
@@ -46,7 +47,7 @@ class SpacialDiffEquation(abc.ABC):
             for i in range(self.chemical_count):
                 padded = np.pad(concentrations[i], pad_width=(self.diffusion_kernel.shape[0]-1)//2, mode='edge')
                 convolved = scipy.signal.fftconvolve(padded, self.diffusion_kernel, mode='valid')
-                dydt[i, :, :] += convolved * self.diffusion_rates[i]
+                dydt[i, :, :] += convolved * (self.diffusion_rates[i] / self.ds**2)
             return dydt.reshape(self.chemical_count*self.width*self.height)
 
         solution = scipy.integrate.odeint(diff_eq, y0=y0, t=time_steps)
