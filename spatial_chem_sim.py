@@ -24,6 +24,14 @@ class SpacialDiffEquation(abc.ABC):
         pass
 
     def solve(self, initial_concentrations, t_end: float, dt: float):
+        """
+        Solves the spatial differential equation corresponding to the coordinate wise equation plus diffusion
+        :param initial_concentrations:
+        :param t_end:
+        :param dt:
+        :return: 4-dimensonal numpy array with dimension 0: time, dimension 1: particle index, dimension 2: x-coordinate
+        dimension 3: y-coordinate
+        """
         y0 = np.array(initial_concentrations).reshape(self.chemical_count*self.width*self.height)
         time_steps = np.arange(0, ceil(t_end/dt))*dt
 
