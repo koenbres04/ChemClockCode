@@ -1,6 +1,8 @@
 import numpy as np
 from spatial_chem_sim import SpacialDiffEquation, DIFFUSE_CONVOLVE
 from animations import grid_animation
+from dataclasses import dataclass
+import os
 
 
 class BasicChemClock(SpacialDiffEquation):
@@ -13,7 +15,25 @@ class BasicChemClock(SpacialDiffEquation):
         return 1-(1+self.alpha)*x+self.beta*(x**2)*y, self.alpha*x-self.beta*(x**2)*y
 
 
-def main():
+class ChemicalClock(SpacialDiffEquation):
+    def __init__(self, width, height, ds, diffusion_kernel, xy_diffusion_rate, p_diffusion_rate, q_diffusion_rate,
+                 alpha_per_q, beta_per_p_squared):
+        super().__init__(width, height, ds, diffusion_kernel, 4,
+                         (p_diffusion_rate, q_diffusion_rate, xy_diffusion_rate, xy_diffusion_rate))
+        self.alpha_per_q = alpha_per_q
+        self.beta_per_p_squared = beta_per_p_squared
+
+    def coordinate_wise_diff_eq(self, t, p, q, x, y):
+        dp_dt = np.zeros((self.width, self.height), dtype=float)
+        dq_dt = np.zeros((self.width, self.height), dtype=float)
+        alpha = self.alpha_per_q*q
+        beta = self.beta_per_p_squared*p*p
+        dx_dt = 1-(1+alpha)*x+beta*(x**2)*y
+        dy_dt = alpha*x-beta*(x**2)*y
+        return dp_dt, dq_dt, dx_dt, dy_dt
+
+
+def old_testing():
     model = BasicChemClock(
         width=30,
         height=30,
@@ -31,6 +51,50 @@ def main():
     solution = model.solve((x0, y0), t_end, dt)
 
     grid_animation(solution[:, 1, :, :], dt, model.ds)
+
+
+@dataclass(frozen=True)
+class ChemOscTest:
+    file_name: str
+    init_p: np.ndarray
+    init_q: np.ndarray
+
+
+def main():
+    model = ChemicalClock(
+        width=30,
+        height=30,
+        ds=0.1,
+        p_diffusion_rate=0,
+        q_diffusion_rate=0,
+        xy_diffusion_rate=0.1,
+        diffusion_kernel=DIFFUSE_CONVOLVE,
+        alpha_per_q=1,
+        beta_per_p_squared=1
+    )
+    t_end = 10
+    dt = 0.01
+    video_frame_rate = 30
+    video_t_per_second = 1
+    output_folder = "output"
+
+    x0 = np.zeros((model.width, model.height), dtype=float)
+    y0 = np.zeros((model.width, model.height), dtype=float)
+
+    tests = [
+        ChemOscTest(file_name="test_1.gif",
+                    init_p=1*np.ones((model.width, model.height), dtype=float),
+                    init_q=1*np.ones((model.width, model.height), dtype=float)),
+        ChemOscTest(file_name="test_2.gif",
+                    init_p=1*np.ones((model.width, model.height), dtype=float),
+                    init_q=5*np.ones((model.width, model.height), dtype=float))
+    ]
+
+    for test in tests:
+        solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
+        grid_animation(solution[:, 3, :, :], model.ds, model.width, model.height,
+                       t_end, dt, video_frame_rate, video_t_per_second,
+                       os.path.join(output_folder, test.file_name))
 
 
 if __name__ == '__main__':
