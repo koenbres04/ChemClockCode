@@ -9,7 +9,7 @@ class BasicChemClock(SpacialDiffEquation):
         self.alpha = alpha
         self.beta = beta
 
-    def diff_eq(self, t, x, y):
+    def coordinate_wise_diff_eq(self, t, x, y):
         return 1-(1+self.alpha)*x+self.beta*(x**2)*y, self.alpha*x-self.beta*(x**2)*y
 
 
