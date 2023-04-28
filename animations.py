@@ -21,7 +21,7 @@ def temp_print(array, scale=1.):
 
 
 def grid_animation(values, dt):
-    # temporary
+    # temporary  lasse doe dit
     for i, grid in enumerate(values):
         print(" ")
         print(f"t = {i*dt:2f}")
