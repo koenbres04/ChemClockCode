@@ -109,7 +109,7 @@ def main():
     for test in tests:
         solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
         grid_animation(solution[:, 3, :, :], model.ds, model.width, model.height,
-                       dt, video_frame_rate, video_t_per_second,
+                       dt, t_end, video_frame_rate, video_t_per_second,
                        os.path.join(output_folder, test.file_name))
 
 
