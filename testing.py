@@ -68,8 +68,8 @@ def old_testing():
 
     solution = model.solve((x0, y0), t_end, dt)
 
-    grid_animation(solution[:, 1, :, :], model.ds, model.width, model.height, dt, video_frame_rate, video_t_per_second,
-                   os.path.join(output_folder, "old_test.mp4"))
+    grid_animation(solution[:, 1, :, :], model.ds, model.width, model.height, dt, t_end, video_frame_rate,
+                   video_t_per_second, os.path.join(output_folder, "old_test.mp4"))
 
 
 @dataclass(frozen=True)
@@ -93,10 +93,10 @@ def main():
         epsilon=1,
         eta=1
     )
-    t_end = 40
+    t_end = 60
     dt = 0.01
     video_frame_rate = 30
-    video_t_per_second = 1
+    video_t_per_second = 4
     output_folder = "output"
     output_format = ".mp4"
     output_particles = [1, 3]
@@ -126,7 +126,7 @@ def main():
         for i in output_particles:
             print(f"Animating particle {i}...")
             grid_animation(solution[:, i, :, :], model.ds, model.width, model.height,
-                           dt, video_frame_rate, video_t_per_second,
+                           dt, t_end, video_frame_rate, video_t_per_second,
                            os.path.join(output_folder, f"{test.file_name}_particle_{i}{output_format}"))
 
 
