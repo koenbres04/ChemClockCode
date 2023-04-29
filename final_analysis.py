@@ -3,6 +3,7 @@ from spatial_chem_sim import SpacialDiffEquation, DIFFUSE_CONVOLVE
 from animations import grid_animation
 from dataclasses import dataclass
 import os
+from math import pi, exp
 
 
 class ChemicalClock(SpacialDiffEquation):
@@ -28,6 +29,15 @@ class ChemOscTest:
 
 def horizontal_gradient(width, height, start, end):
     return np.linspace(np.repeat(start, height), np.repeat(end, height), num=width, dtype=float)
+
+
+def gaussian(width, height, ds, mean, sd, total):
+    result = np.zeros((width, height), dtype=float)
+    mean = np.array(mean, dtype=float)
+    for i, j in np.ndindex(width, height):
+        result[i, j] = (total*2*pi/sd**2)*exp(-1/2*np.linalg.norm((np.array((i, j), dtype=float)*ds-mean)/sd)**2)
+    print(result)
+    return result
 
 
 def main():
@@ -61,7 +71,10 @@ def main():
         ChemOscTest(name="test_3",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=5*np.ones((model.width, model.height), dtype=float)
-                    + 0.1*np.random.rand(model.width, model.height))
+                    + 0.1*np.random.rand(model.width, model.height)),
+        ChemOscTest(name="test_4",
+                    init_p=1*np.ones((model.width, model.height), dtype=float),
+                    init_q=gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.2, 0.1))
     ]
 
     if not os.path.exists(output_folder):
