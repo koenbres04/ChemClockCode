@@ -71,9 +71,9 @@ def horizontal_gradient(width, height, start, end):
 
 def main():
     model = ChemicalClock(
-        width=30,
-        height=30,
-        ds=0.1,
+        width=100,
+        height=100,
+        ds=0.05,
         p_diffusion_rate=0,
         q_diffusion_rate=0,
         xy_diffusion_rate=0.001,
@@ -81,10 +81,10 @@ def main():
         alpha_per_q=1,
         beta_per_p_squared=1
     )
-    t_end = 40
+    t_end = 60
     dt = 0.01
     video_frame_rate = 30
-    video_t_per_second = 1
+    video_t_per_second = 4
     output_folder = "output"
 
     x0 = np.zeros((model.width, model.height), dtype=float)
@@ -106,8 +106,10 @@ def main():
     if not os.path.exists(output_folder):
         os.mkdir(output_folder)
 
-    for test in tests:
+    for i, test in enumerate(tests):
+        print(f"Solving {i+1}-th test...")
         solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
+        print(f"Animating {i+1}-th test...")
         grid_animation(solution[:, 3, :, :], model.ds, model.width, model.height,
                        dt, t_end, video_frame_rate, video_t_per_second,
                        os.path.join(output_folder, test.file_name))
