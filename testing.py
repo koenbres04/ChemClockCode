@@ -33,6 +33,20 @@ class ChemicalClock(SpacialDiffEquation):
         return dp_dt, dq_dt, dx_dt, dy_dt
 
 
+class ChemicalClock2(SpacialDiffEquation):
+    def __init__(self, width, height, ds, diffusion_kernel, diffusion_rate, epsilon, eta):
+        super().__init__(width, height, ds, diffusion_kernel, 4, 4*(diffusion_rate,))
+        self.epsilon = epsilon
+        self.eta = eta
+
+    def coordinate_wise_diff_eq(self, t, p, q, x, y):
+        dp_dt = np.zeros((self.width, self.height), dtype=float)
+        dq_dt = np.zeros((self.width, self.height), dtype=float)
+        dx_dt = 1-(1+self.epsilon*q)*x+self.eta*(x**2)*y
+        dy_dt = self.epsilon*q*x-self.eta*(x**2)*y
+        return dp_dt, dq_dt, dx_dt, dy_dt
+
+
 def old_testing():
     model = BasicChemClock(
         width=30,
@@ -70,34 +84,34 @@ def horizontal_gradient(width, height, start, end):
 
 
 def main():
-    model = ChemicalClock(
+    model = ChemicalClock2(
         width=30,
         height=30,
         ds=0.1,
-        p_diffusion_rate=0,
-        q_diffusion_rate=0,
-        xy_diffusion_rate=0.001,
+        diffusion_rate=0.001,
         diffusion_kernel=DIFFUSE_CONVOLVE,
-        alpha_per_q=1,
-        beta_per_p_squared=1
+        epsilon=1,
+        eta=1
     )
     t_end = 40
     dt = 0.01
     video_frame_rate = 30
     video_t_per_second = 1
     output_folder = "output"
+    output_format = ".mp4"
+    output_particles = [1, 3]
 
     x0 = np.zeros((model.width, model.height), dtype=float)
     y0 = np.zeros((model.width, model.height), dtype=float)
 
     tests = [
-        ChemOscTest(file_name="test_1.mp4",
+        ChemOscTest(file_name="test_1",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=5*np.ones((model.width, model.height), dtype=float)),
-        ChemOscTest(file_name="test_2.mp4",
+        ChemOscTest(file_name="test_2",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=horizontal_gradient(model.width, model.height, 0, 10)),
-        ChemOscTest(file_name="test_3.mp4",
+        ChemOscTest(file_name="test_3",
                     init_p=1*np.ones((model.width, model.height), dtype=float),
                     init_q=5*np.ones((model.width, model.height), dtype=float)
                     + 0.1*np.random.rand(model.width, model.height))
@@ -107,10 +121,13 @@ def main():
         os.mkdir(output_folder)
 
     for test in tests:
+        print(f"Running {test.file_name}...")
         solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
-        grid_animation(solution[:, 3, :, :], model.ds, model.width, model.height,
-                       dt, video_frame_rate, video_t_per_second,
-                       os.path.join(output_folder, test.file_name))
+        for i in output_particles:
+            print(f"Animating particle {i}...")
+            grid_animation(solution[:, i, :, :], model.ds, model.width, model.height,
+                           dt, video_frame_rate, video_t_per_second,
+                           os.path.join(output_folder, f"{test.file_name}_particle_{i}{output_format}"))
 
 
 if __name__ == '__main__':
