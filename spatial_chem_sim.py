@@ -5,7 +5,7 @@ import numpy as np
 from math import ceil
 
 
-DIFFUSE_CONVOLVE = np.array([
+DIFFUSION_KERNEL = np.array([
     [0., 1., 0.],
     [1., -4., 1.],
     [0., 1., 0.]
@@ -29,6 +29,7 @@ class SpacialDiffEquation(abc.ABC):
     def coordinate_wise_diff_eq(self, t, *concentration_arrays):
         """
         The coordinate-wise part of the differential equation.
+
         :param t: time at this point in time
         :param concentration_arrays: tuple of (width,height)-shaped numpy arrays for each particle type containing the
         concentration of this particle at each cell at this point in time
@@ -40,6 +41,7 @@ class SpacialDiffEquation(abc.ABC):
     def solve(self, initial_concentrations, t_end: float, dt: float):
         """
         Solves the spatial differential equation corresponding to the coordinate wise equation plus diffusion
+
         :param initial_concentrations: a list of self.chemical_count (width,height)-shaped numpy arrays containing
         the initial concentrations of each particle at each cell
         :param t_end: time to end the simulation

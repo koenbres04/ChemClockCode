@@ -1,5 +1,5 @@
 import numpy as np
-from spatial_chem_sim import SpacialDiffEquation, DIFFUSE_CONVOLVE
+from spatial_chem_sim import SpacialDiffEquation, DIFFUSION_KERNEL
 from animations import grid_animation
 from dataclasses import dataclass
 import os
@@ -52,7 +52,7 @@ def old_testing():
         width=30,
         height=30,
         ds=0.1,
-        diffusion_kernel=DIFFUSE_CONVOLVE,
+        diffusion_kernel=DIFFUSION_KERNEL,
         xy_diffusion_rate=0.0025,
         alpha=5,
         beta=1
@@ -89,7 +89,7 @@ def main():
         height=30,
         ds=0.1,
         diffusion_rate=0.001,
-        diffusion_kernel=DIFFUSE_CONVOLVE,
+        diffusion_kernel=DIFFUSION_KERNEL,
         epsilon=1,
         eta=1
     )
