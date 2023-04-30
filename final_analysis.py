@@ -36,7 +36,6 @@ def gaussian(width, height, ds, mean, sd, total):
     mean = np.array(mean, dtype=float)
     for i, j in np.ndindex(width, height):
         result[i, j] = (total*2*pi/sd**2)*exp(-1/2*np.linalg.norm((np.array((i, j), dtype=float)*ds-mean)/sd)**2)
-    print(result)
     return result
 
 
@@ -56,7 +55,8 @@ def main():
     video_t_per_second = 4
     output_folder = "output"
     output_format = ".mp4"
-    output_particles = [1, 3]
+    output_particles = [0, 1, 2, 3]
+    channels = ["p", "q", "x", "y"]
 
     x0 = np.zeros((model.width, model.height), dtype=float)
     y0 = np.zeros((model.width, model.height), dtype=float)
@@ -83,11 +83,12 @@ def main():
     for test in tests:
         print(f"Running {test.name}...")
         solution = model.solve((test.init_p, test.init_q, x0, y0), t_end, dt)
-        for i in output_particles:
-            print(f"Animating particle {i}...")
-            grid_animation(solution[:, i, :, :], model.ds, model.width, model.height,
-                           dt, t_end, video_frame_rate, video_t_per_second,
-                           os.path.join(output_folder, f"{test.name}_particle_{i}{output_format}"))
+        print(f"Animating {test.name}...")
+        solution_subset = [list(np.swapaxes(solution, 0, 1))[i] for i in output_particles]
+        grid_animation(solution_subset, model.ds, model.width, model.height,
+                       dt, t_end, video_frame_rate, video_t_per_second,
+                       os.path.join(output_folder, f"{test.name}{output_format}"),
+                       channels=channels)
 
 
 if __name__ == '__main__':
