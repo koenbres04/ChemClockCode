@@ -7,7 +7,7 @@ from math import pi, exp
 
 
 # implement the chemical clock chemical reaction
-# note that the variables p,q,x,y here are the dimensionless p_hat, q_hat, x_hat, y_hat from the article
+# note that the variables p,q,x,y,t here are the dimensionless p_hat, q_hat, x_hat, y_hat from the article
 class ChemicalClock(SpacialDiffEquation):
     def __init__(self, width, height, ds, diffusion_kernel, diffusion_rate, omega=0, nu=0):
         super().__init__(width, height, ds, diffusion_kernel, 4, 4*(diffusion_rate,))
@@ -38,11 +38,11 @@ def horizontal_gradient(width, height, start, end):
 
 
 # create a (width,height)-shaped array with values from a gaussian
-def gaussian(width, height, ds, mean, sd, total):
+def gaussian(width, height, ds, mean, sd):
     result = np.zeros((width, height), dtype=float)
     mean = np.array(mean, dtype=float)
     for i, j in np.ndindex(width, height):
-        result[i, j] = (total*2*pi/sd**2)*exp(-1/2*np.linalg.norm((np.array((i, j), dtype=float)*ds-mean)/sd)**2)
+        result[i, j] = exp(-1/2*np.linalg.norm((np.array((i, j), dtype=float)*ds-mean)/sd)**2)/(2*pi*sd**2)
     return result
 
 
@@ -66,47 +66,49 @@ def main():
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
 
-    ones = np.ones((model.width, model.height), dtype=float)
-    zeros = np.zeros((model.width, model.height), dtype=float)
+    # parameters for the tests
+    # note that the p,q,x,y's here are the dimensionless versions denoted with a hat in the article
+    average_p = 1
+    average_q = 5
 
     # create a list of tests to simulate
-    # note that the p,q,x,y's here are the dimensionless versions denoted with a hat in the article
+    ones = np.ones((model.width, model.height), dtype=float)
+    zeros = np.zeros((model.width, model.height), dtype=float)
+    area = model.width*model.width*model.ds*model.ds
     tests = [
-        ChemOscTest(name="test_const_pq",
-                    init_p=1*ones,
-                    init_q=5*ones,
-                    init_x=1*ones,
+        ChemOscTest(name="test_homogenous",
+                    init_p=average_p*ones,
+                    init_q=average_q*ones,
+                    init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="test_gradient_q",
-                    init_p=1*np.ones((model.width, model.height), dtype=float),
-                    init_q=horizontal_gradient(model.width, model.height, 0, 10),
-                    init_x=1*ones,
+                    init_p=average_p*ones,
+                    init_q=horizontal_gradient(model.width, model.height, 0, 2*average_q),
+                    init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="test_noise_q",
-                    init_p=1*np.ones((model.width, model.height), dtype=float),
-                    init_q=5*np.ones((model.width, model.height), dtype=float)
-                    + 0.1*np.random.rand(model.width, model.height),
-                    init_x=1*ones,
+                    init_p=average_p*ones,
+                    init_q=average_q*(ones + 0.1*np.random.rand(model.width, model.height)),
+                    init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="test_gaussian_q",
-                    init_p=1*np.ones((model.width, model.height), dtype=float),
-                    init_q=gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.2, 0.1),
-                    init_x=1*ones,
+                    init_p=average_p*ones,
+                    init_q=average_q*area*gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.5),
+                    init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="test_gradient_p",
-                    init_p=horizontal_gradient(model.width, model.height, 0, 10),
-                    init_q=1*np.ones((model.width, model.height), dtype=float),
+                    init_p=horizontal_gradient(model.width, model.height, 0, 2*average_p),
+                    init_q=average_q*ones,
                     init_x=zeros,
                     init_y=zeros),
         ChemOscTest(name="test_noise_p",
-                    init_p=1*np.ones((model.width, model.height), dtype=float)
-                    + 0.1*np.random.rand(model.width, model.height),
-                    init_q=5*np.ones((model.width, model.height), dtype=float),
-                    init_x=1*ones,
+                    init_p=average_p*(ones + 0.1*np.random.rand(model.width, model.height)),
+                    init_q=average_q*ones,
+                    init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="test_gaussian_p",
-                    init_p=gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.2, 0.1),
-                    init_q=1*np.ones((model.width, model.height), dtype=float),
+                    init_p=average_p*area*gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.5),
+                    init_q=average_p*ones,
                     init_x=zeros,
                     init_y=zeros)
     ]
