@@ -55,16 +55,22 @@ def grid_animation(values: list[np.ndarray], ds: float, width: int, height: int,
 
     # animation function
     def anim_func(frame):
-        for i, dens, time_i, time_line in zip(range(num_particles), densities, time_texts, track_lines):
-            dens.set_array(values[i][round(frame/video_frame_rate*video_t_per_second/dt), :, :].ravel())
-            time_i.set_text(f"t={round(timestamps[frame], 2)} s")
-            time_line.set_xdata(np.array([timestamps[frame]]*2))
-        return *densities, *time_texts, *track_lines
+        if track_point is not None:
+            for i, dens, time_i, time_line in zip(range(num_particles), densities, time_texts, track_lines):
+                dens.set_array(values[i][round(frame/video_frame_rate*video_t_per_second/dt), :, :].ravel())
+                time_i.set_text(f"t={round(timestamps[frame], 2)} s")
+                time_line.set_xdata(np.array([timestamps[frame]]*2))
+            return *densities, *time_texts, *track_lines
+        else:
+            for i, dens, time_i in zip(range(num_particles), densities, time_texts):
+                dens.set_array(values[i][round(frame/video_frame_rate*video_t_per_second/dt), :, :].ravel())
+                time_i.set_text(f"t={round(timestamps[frame], 2)} s")
+            return *densities, *time_texts
 
     # initialize the density and normal plots and add a time text
     densities = [density_axs[i].pcolormesh(u, v, values[i][0, :, :], cmap="viridis", shading="auto",
-                                vmin=np.min(values[i]),
-                                vmax=np.max(values[i])) for i in range(num_particles)]
+                                           vmin=np.min(values[i]),
+                                           vmax=np.max(values[i])) for i in range(num_particles)]
     time_texts = [ax.text(width*ds*0.01, height*ds*0.90, "t=0", fontsize=10) for ax in density_axs]
     if track_point is not None:
         track_lines = []
@@ -72,7 +78,7 @@ def grid_animation(values: list[np.ndarray], ds: float, width: int, height: int,
             ax.plot(np.linspace(0, t_end, len(track_values[i])),
                     track_values[i], color="red", linewidth=1.2)
             line, = ax.plot([0]*2, [np.min(track_values[i])-0.05, np.max(track_values[i])+0.05],
-                               color="black", linewidth=1.1, linestyle="dotted")
+                            color="black", linewidth=1.1, linestyle="dotted")
             ax.set(xlabel=r"$\hat{t}$", ylabel=channels[i])
             track_lines.append(line)
         for ax in density_axs:

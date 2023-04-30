@@ -47,24 +47,27 @@ def gaussian(width, height, ds, mean, sd):
 
 
 def main():
-    # instantiate a chemical clock model and set a bunch of parameters
+    # instantiate a chemical clock model
     model = ChemicalClock(
         width=30,
         height=30,
         ds=0.1,
-        diffusion_rate=0.001,
+        diffusion_rate=0.0025,
         diffusion_kernel=DIFFUSION_KERNEL,
         omega=0,
         nu=0
     )
+    # set parameters of the simulation
     t_end = 60
     dt = 0.01
+    # set parameters for the output video
     video_frame_rate = 30
     video_t_per_second = 4
     output_folder = "output"
     output_format = ".mp4"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
+    track_point = (1, 1)
 
     # parameters for the tests
     # note that the p,q,x,y's here are the dimensionless versions denoted with a hat in the article
@@ -108,7 +111,7 @@ def main():
                     init_y=zeros),
         ChemOscTest(name="test_gaussian_p",
                     init_p=average_p*area*gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.5),
-                    init_q=average_p*ones,
+                    init_q=average_q*ones,
                     init_x=zeros,
                     init_y=zeros)
     ]
@@ -125,7 +128,7 @@ def main():
         grid_animation(solution_subset, model.ds, model.width, model.height,
                        dt, t_end, video_frame_rate, video_t_per_second,
                        os.path.join(output_folder, f"{test.name}{output_format}"),
-                       channels=channels)
+                       channels=channels, track_point=track_point)
 
 
 if __name__ == '__main__':
