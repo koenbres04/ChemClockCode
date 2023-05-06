@@ -4,6 +4,8 @@ from animations import grid_animation
 from dataclasses import dataclass
 import os
 from math import pi, exp
+import time
+import json
 
 
 # implement the chemical clock chemical reaction
@@ -61,13 +63,7 @@ def main():
     t_end = 60
     dt = 0.01
     # set parameters for the output video
-    video_frame_rate = 30
-    video_t_per_second = 4
     output_folder = "output"
-    output_format = ".mp4"
-    output_particles = [0, 1, 2, 3]
-    channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
-    track_point = (1, 1)
 
     # parameters for the tests
     # note that the p,q,x,y's here are the dimensionless versions denoted with a hat in the article
@@ -123,12 +119,19 @@ def main():
     for test in tests:
         print(f"Running {test.name}...")
         solution = model.solve((test.init_p, test.init_q, test.init_x, test.init_y), t_end, dt)
-        print(f"Animating {test.name}...")
-        solution_subset = [list(np.swapaxes(solution, 0, 1))[i] for i in output_particles]
-        grid_animation(solution_subset, model.ds, model.width, model.height,
-                       dt, t_end, video_frame_rate, video_t_per_second,
-                       os.path.join(output_folder, f"{test.name}{output_format}"),
-                       channels=channels, track_point=track_point)
+        print(f"Saving {test.name}...")
+        test_folder = os.path.join(output_folder, f"{test.name}_{time.strftime('%Y%m%d_%H%M%S')}")
+        os.mkdir(test_folder)
+        np.save(os.path.join(test_folder, "raw.npy"), solution)
+        params_dict = {
+            "width": model.width,
+            "height": model.height,
+            "ds": model.ds,
+            "dt": dt,
+            "t_end": t_end
+        }
+        with open(os.path.join(test_folder, "params.json"), "w") as params_file:
+            json.dump(params_dict, params_file)
 
 
 if __name__ == '__main__':

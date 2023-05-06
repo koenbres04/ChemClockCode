@@ -1,3 +1,6 @@
+import json
+import os
+
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
@@ -5,7 +8,7 @@ import numpy as np
 
 def grid_animation(values: list[np.ndarray], ds: float, width: int, height: int, dt: float, t_end,
                    video_frame_rate: int, video_t_per_second, filename: str, channels: list[str],
-                   track_point=None):
+                   min_t: float, max_t: float, track_point=None):
     """
     Visualizes the two-dimensional solution of a differential equation
 
@@ -19,6 +22,8 @@ def grid_animation(values: list[np.ndarray], ds: float, width: int, height: int,
     :param video_t_per_second: determines how many simulation seconds pass in each real time second
     :param filename: name of output file
     :param channels: list with names of the particles in order of the value list
+    :param min_t: time in the simulation to start the animation
+    :param max_t: time in the simulation to end the animation
     :param track_point: optional (x, y) coordinates to show over time next to the other plots
     """
     # create a mesh for the space that we simulate over
@@ -94,3 +99,46 @@ def grid_animation(values: list[np.ndarray], ds: float, width: int, height: int,
                                    blit=True)
     # save
     anim.save(filename, writer='ffmpeg', fps=video_frame_rate)
+
+
+def animate_test(test_name):
+    # folder to read from
+    output_folder = "output"
+    # parameters
+    output_file_name = "animation"
+    video_frame_rate = 30
+    video_t_per_second = 4
+    min_t = 0
+    max_t = 30
+    output_format = ".mp4"
+    output_particles = [0, 1, 2, 3]
+    channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
+    track_point = (1, 1)
+
+    # load data
+    found_folder = None
+    for test_folder in os.listdir(output_folder):
+        if test_folder.startswith(test_name):
+            found_folder = test_folder
+            break
+    output_subfolder = os.path.join(output_folder, found_folder)
+    solution = np.load(os.path.join(output_subfolder, "raw.npy"))
+    with open(os.path.join(output_subfolder, "params.json")) as params_file:
+        param_dict = json.load(params_file)
+    ds = param_dict["ds"]
+    width = param_dict["width"]
+    height = param_dict["height"]
+    dt = param_dict["dt"]
+    t_end = param_dict["t_end"]
+
+    # generate the animation
+    print(f"Animating {found_folder}...")
+    solution_subset = [list(np.swapaxes(solution, 0, 1))[i] for i in output_particles]
+    grid_animation(solution_subset, ds, width, height,
+                   dt, t_end, video_frame_rate, video_t_per_second,
+                   os.path.join(output_subfolder, f"{output_file_name}{output_format}"),
+                   channels=channels, track_point=track_point, min_t=min_t, max_t=max_t)
+
+
+if __name__ == '__main__':
+    animate_test(input("Give the name of the test:\n"))
