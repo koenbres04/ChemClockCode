@@ -55,7 +55,7 @@ class Visualize:
         for i, ax in enumerate(axs):
             ax.plot(np.linspace(min_t, max_t, len(track_values[i])), track_values[i], color="black", linewidth=1.2)
             ax.set(xlabel=r"$\hat{t}$", ylabel=channels[i])
-        plt.show()
+        plt.savefig(filename)
 
     def grid_animation(self, video_frame_rate: int, video_t_per_second, filename: str,
                        channels: list[str], output_particles: list[int], min_t: float, max_t: float, track_point=None):
