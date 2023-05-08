@@ -1,6 +1,5 @@
 import numpy as np
 from spatial_chem_sim import SpacialDiffEquation, DIFFUSION_KERNEL
-from animations import grid_animation
 from dataclasses import dataclass
 import os
 from math import pi, exp
@@ -75,37 +74,37 @@ def main():
     zeros = np.zeros((model.width, model.height), dtype=float)
     area = model.width*model.width*model.ds*model.ds
     tests = [
-        ChemOscTest(name="test_homogenous",
+        ChemOscTest(name="homogenous",
                     init_p=average_p*ones,
                     init_q=average_q*ones,
                     init_x=average_p*ones,
                     init_y=zeros),
-        ChemOscTest(name="test_gradient_q",
+        ChemOscTest(name="gradient_q",
                     init_p=average_p*ones,
                     init_q=horizontal_gradient(model.width, model.height, 0, 2*average_q),
                     init_x=average_p*ones,
                     init_y=zeros),
-        ChemOscTest(name="test_noise_q",
+        ChemOscTest(name="noise_q",
                     init_p=average_p*ones,
                     init_q=average_q*(ones + 0.1*np.random.rand(model.width, model.height)),
                     init_x=average_p*ones,
                     init_y=zeros),
-        ChemOscTest(name="test_gaussian_q",
+        ChemOscTest(name="gaussian_q",
                     init_p=average_p*ones,
                     init_q=average_q*area*gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.5),
                     init_x=average_p*ones,
                     init_y=zeros),
-        ChemOscTest(name="test_gradient_p",
+        ChemOscTest(name="gradient_p",
                     init_p=horizontal_gradient(model.width, model.height, 0, 2*average_p),
                     init_q=average_q*ones,
                     init_x=zeros,
                     init_y=zeros),
-        ChemOscTest(name="test_noise_p",
+        ChemOscTest(name="noise_p",
                     init_p=average_p*(ones + 0.1*np.random.rand(model.width, model.height)),
                     init_q=average_q*ones,
                     init_x=average_p*ones,
                     init_y=zeros),
-        ChemOscTest(name="test_gaussian_p",
+        ChemOscTest(name="gaussian_p",
                     init_p=average_p*area*gaussian(model.width, model.height, model.ds, (1.5, 1.5), 0.5),
                     init_q=average_q*ones,
                     init_x=zeros,

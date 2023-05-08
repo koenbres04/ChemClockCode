@@ -1,22 +1,32 @@
-import json
+import numpy as np
 import os
+import json
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib
-import numpy as np
 from math import ceil
 
 
-class Visualize:
-    def __init__(self, input_map: str):
+class SimulationOutput:
+    def __init__(self, output_folder: str, test_name: str):
         """
         Visualizes the two-dimensional solution of a differential equation
-        :param input_map: path to simulation file
+        :param output_folder: path to output folder
+        :param test_name: the start of the name of the specific test
         """
+        # find the folder corresponding to the test name
+        found_folder = None
+        for test_folder in os.listdir(output_folder):
+            if test_folder.startswith(test_name):
+                found_folder = test_folder
+                break
+        if found_folder is None:
+            raise FileNotFoundError(f"No test named '{test_name}' found in the output folder '{output_folder}'.")
+        self.simulation_folder = os.path.join(output_folder, found_folder)
         # load the values and parameters
-        values_path = os.path.join(input_map, "raw.npy")
+        values_path = os.path.join(self.simulation_folder, "raw.npy")
         self.values = np.load(values_path)
-        with open(os.path.join(input_map, "params.json"), "r") as read_json:
+        with open(os.path.join(self.simulation_folder, "params.json"), "r") as read_json:
             params = json.load(read_json)
         # unpack the dict
         self.width = params["width"]
@@ -24,6 +34,19 @@ class Visualize:
         self.ds = params["ds"]
         self.dt = params["dt"]
         self.t_end = params["t_end"]
+
+    def unique_file_name(self, name, extension):
+        max_index = -1
+        for file in os.listdir(self.simulation_folder):
+            if file.startswith(name) and file.endswith(extension):
+                middle = file[len(name):-len(extension)]
+                if not middle.startswith("_"):
+                    continue
+                try:
+                    max_index = int(middle[1:])
+                except ValueError:
+                    pass
+        return os.path.join(self.simulation_folder, f"{name}_{max_index+1}{extension}")
 
     def plot_frames(self, filename: str, channel: str, output_particle: int,
                     min_t: float, max_t: float, num_frames: int):
@@ -209,19 +232,12 @@ def frames_test(test_name):
     channel = r"$\hat y$"
     num_frames = 17
 
-    # load data
-    found_folder = None
-    for test_folder in os.listdir(output_folder):
-        if test_folder.startswith(test_name):
-            found_folder = test_folder
-            break
-    output_subfolder = os.path.join(output_folder, found_folder)
-
     # generate the animation
-    print(f"Creating {found_folder}...")
-    anim = Visualize(output_subfolder)
-    anim.plot_frames(os.path.join(output_subfolder, f"{output_file_name}{output_format}"),
-                     channel, output_particle, min_t, max_t, num_frames)
+    print(f"Loading test {test_name}...")
+    simulation_output = SimulationOutput(output_folder, test_name)
+    print(f"Animating...")
+    simulation_output.plot_frames(simulation_output.unique_file_name(output_file_name, output_format),
+                                  channel, output_particle, min_t, max_t, num_frames)
 
 
 def track_test(test_name):
@@ -236,19 +252,12 @@ def track_test(test_name):
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
     track_point = (1, 1)
 
-    # load data
-    found_folder = None
-    for test_folder in os.listdir(output_folder):
-        if test_folder.startswith(test_name):
-            found_folder = test_folder
-            break
-    output_subfolder = os.path.join(output_folder, found_folder)
-
     # generate the animation
-    print(f"Creating {found_folder}...")
-    anim = Visualize(output_subfolder)
-    anim.track_point(os.path.join(output_subfolder, f"{output_file_name}{output_format}"),
-                     channels, output_particles, min_t, max_t, track_point=track_point)
+    print(f"Loading test {test_name}...")
+    simulation_output = SimulationOutput(output_folder, test_name)
+    print(f"Animating...")
+    simulation_output.track_point(simulation_output.unique_file_name(output_file_name, output_format),
+                                  channels, output_particles, min_t, max_t, track_point=track_point)
 
 
 def animate_test(test_name):
@@ -265,23 +274,40 @@ def animate_test(test_name):
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
     track_point = (1, 1)
 
-    # load data
-    found_folder = None
-    for test_folder in os.listdir(output_folder):
-        if test_folder.startswith(test_name):
-            found_folder = test_folder
-            break
-    output_subfolder = os.path.join(output_folder, found_folder)
-
     # generate the animation
-    print(f"Animating {found_folder}...")
-    anim = Visualize(output_subfolder)
-    anim.grid_animation(video_frame_rate, video_t_per_second,
-                        os.path.join(output_subfolder, f"{output_file_name}{output_format}"),
-                        channels, output_particles, min_t, max_t, track_point=None)
+    print(f"Loading test {test_name}...")
+    simulation_output = SimulationOutput(output_folder, test_name)
+    print(f"Animating...")
+    simulation_output.grid_animation(video_frame_rate, video_t_per_second,
+                                     simulation_output.unique_file_name(output_file_name, output_format),
+                                     channels, output_particles, min_t, max_t, track_point=track_point)
+
+
+def period_test(test_name):
+    output = SimulationOutput("output", test_name)
+    track_point = (2.5, 2.5)
+    track_particle = 3
+
+    # get data for track_point
+    values = np.swapaxes(output.values, 0, 1)[track_particle]
+    u = np.arange(0, output.width * output.ds, output.ds)
+    v = np.arange(0, output.height * output.ds, output.ds)
+    i_u_nearest = (np.abs(u - track_point[0])).argmin()
+    i_v_nearest = (np.abs(v - track_point[1])).argmin()
+    track_values = values[:, i_u_nearest, i_v_nearest]
+
+    # find maxima
+    maximum_indices = []
+    for i in range(1, len(track_values)-1):
+        if track_values[i] > track_values[i-1] and track_values[i] > track_values[i+1]:
+            maximum_indices.append(i)
+    periods = [output.dt*(maximum_indices[i]-maximum_indices[i-1]) for i in range(1, len(maximum_indices))]
+    for i, x in enumerate(periods):
+        print(f"Distance {x:.3f} between t={maximum_indices[i]*output.dt:.1f}, {maximum_indices[i+1]*output.dt:.1f}")
 
 
 if __name__ == '__main__':
-    name = "test_gaussian_p_20230508_131921"
-    frames_test(name)
-    animate_test(name)
+    test_name = "homogenous"
+    # frames_test(test_name)
+    # animate_test(test_name)
+    period_test(test_name)
