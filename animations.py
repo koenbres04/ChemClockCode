@@ -52,10 +52,10 @@ class Visualize:
         axs = list(axs.flatten())
         # initialize the density and normal plots and add a time text
         for t, ax in zip(timestamps, axs):
-            dens = ax.pcolormesh(u, v, values[round(values.shape[0]*t/self.t_end), :, :], cmap="viridis",
-                                 shading="auto",
-                                 vmin=np.min(values),
-                                 vmax=np.max(values))
+            ax.pcolormesh(u, v, values[round((values.shape[0]-1)*t/max_t), :, :], cmap="viridis",
+                          shading="auto",
+                          vmin=np.min(values),
+                          vmax=np.max(values))
             ax.set_title(f"{channel} on t={round(t, 2)}")
         fig.subplots_adjust(right=0.8)
         cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
@@ -282,5 +282,6 @@ def animate_test(test_name):
 
 
 if __name__ == '__main__':
-    #animate_test(input("Give the name of the test:\n"))
-    frames_test(input("Give the name of the test:\n"))
+    name = "test_gaussian_p_20230508_131921"
+    frames_test(name)
+    animate_test(name)
