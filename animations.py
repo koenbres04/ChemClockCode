@@ -23,6 +23,40 @@ class Visualize:
         self.dt = params["dt"]
         self.t_end = params["t_end"]
 
+    def track_point(self, filename: str, channels: list[str],
+                    output_particles: list[int], min_t: float, max_t: float, track_point):
+        """
+        Visualizes the two-dimensional solution of a differential equation
+        :param filename: name of output file
+        :param channels: list with names of the particles in order of the value list
+        :param output_particles: a list with indices of the particles we want to show
+        :param min_t: time in the simulation to start the animation
+        :param max_t: time in the simulation to end the animation
+        :param track_point: optional (x, y) coordinates to show over time next to the other plots
+        """
+        values = [list(np.swapaxes(self.values, 0, 1))[i] for i in output_particles]
+        if min_t < 0 or max_t > self.t_end:
+            raise ValueError(f"Invalid values for min_t and max_t. Note that max_t"
+                             f" must be smaller or equal to t_end of the simulation")
+        # get data for track_point
+        u = np.arange(0, self.width*self.ds, self.ds)
+        v = np.arange(0, self.height*self.ds, self.ds)
+        i_u_nearest = (np.abs(u - track_point[0])).argmin()
+        i_v_nearest = (np.abs(v - track_point[1])).argmin()
+        track_values = [value[:, i_u_nearest, i_v_nearest] for value in values]
+        num2shape = {"1": (1, 1, 6, 4), "2": (2, 1, 12, 8), "3": (3, 1, 18, 14), "4": (2, 2, 24, 16)}
+        # amount of particles that are shown
+        num_particles = len(values)
+        # initialize figure and axis
+        fig_shape = num2shape[str(num_particles)]
+        fig, axs = plt.subplots(fig_shape[0], fig_shape[1],
+                                figsize=(fig_shape[2], fig_shape[3]))
+        axs = list(axs.flatten())
+        for i, ax in enumerate(axs):
+            ax.plot(np.linspace(min_t, max_t, len(track_values[i])), track_values[i], color="black", linewidth=1.2)
+            ax.set(xlabel=r"$\hat{t}$", ylabel=channels[i])
+        plt.show()
+
     def grid_animation(self, video_frame_rate: int, video_t_per_second, filename: str,
                        channels: list[str], output_particles: list[int], min_t: float, max_t: float, track_point=None):
         """
@@ -115,6 +149,33 @@ class Visualize:
         anim.save(filename, writer='ffmpeg', fps=video_frame_rate)
 
 
+def track_test(test_name):
+    # folder to read from
+    output_folder = "output"
+    # parameters
+    output_file_name = "track"
+    min_t = 0
+    max_t = 30
+    output_format = ".png"
+    output_particles = [0, 1, 2, 3]
+    channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
+    track_point = (1, 1)
+
+    # load data
+    found_folder = None
+    for test_folder in os.listdir(output_folder):
+        if test_folder.startswith(test_name):
+            found_folder = test_folder
+            break
+    output_subfolder = os.path.join(output_folder, found_folder)
+
+    # generate the animation
+    print(f"Animating {found_folder}...")
+    anim = Visualize(output_subfolder)
+    anim.track_point(os.path.join(output_subfolder, f"{output_file_name}{output_format}"),
+                     channels, output_particles, min_t, max_t, track_point=track_point)
+
+
 def animate_test(test_name):
     # folder to read from
     output_folder = "output"
@@ -146,4 +207,5 @@ def animate_test(test_name):
 
 
 if __name__ == '__main__':
-    animate_test(input("Give the name of the test:\n"))
+    #animate_test(input("Give the name of the test:\n"))
+    track_test(input("Give the name of the test:\n"))
