@@ -228,7 +228,7 @@ def frames_test(test_name):
     min_t = 0
     max_t = 30
     output_format = ".png"
-    output_particle = 3
+    output_particle = 0
     channel = r"$\hat y$"
     num_frames = 17
 
@@ -272,7 +272,7 @@ def animate_test(test_name):
     output_format = ".mp4"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
-    track_point = (1, 1)
+    track_point = (1.5, 1.5)
 
     # generate the animation
     print(f"Loading test {test_name}...")
@@ -285,7 +285,7 @@ def animate_test(test_name):
 
 def period_test(test_name):
     output = SimulationOutput("output", test_name)
-    track_point = (2.5, 2.5)
+    track_point = (1.5, 1.5)
     track_particle = 3
 
     # get data for track_point
@@ -307,7 +307,8 @@ def period_test(test_name):
 
 
 if __name__ == '__main__':
-    test_name = "homogenous"
-    # frames_test(test_name)
+    test_name = "gaussian_p"
+    frames_test(test_name)
     # animate_test(test_name)
+    track_test(test_name)
     period_test(test_name)

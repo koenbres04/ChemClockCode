@@ -38,6 +38,12 @@ def horizontal_gradient(width, height, start, end):
     return np.linspace(np.repeat(start, height), np.repeat(end, height), num=width, dtype=float).T
 
 
+# create a (width,height)-shaped array of random noise
+def noise(width, height, amplitude, seed):
+    np.random.seed(seed)
+    return amplitude * np.random.rand(width, height)
+
+
 # create a (width,height)-shaped array with values from a gaussian
 def gaussian(width, height, ds, mean, sd):
     result = np.zeros((width, height), dtype=float)
@@ -59,7 +65,7 @@ def main():
         nu=0
     )
     # set parameters of the simulation
-    t_end = 60
+    t_end = 400
     dt = 0.01
     # set parameters for the output video
     output_folder = "output"
@@ -86,7 +92,7 @@ def main():
                     init_y=zeros),
         ChemOscTest(name="noise_q",
                     init_p=average_p*ones,
-                    init_q=average_q*(ones + 0.1*np.random.rand(model.width, model.height)),
+                    init_q=average_q*(ones+noise(model.width, model.height, amplitude=0.1, seed=171267)),
                     init_x=average_p*ones,
                     init_y=zeros),
         ChemOscTest(name="gaussian_q",
@@ -100,7 +106,7 @@ def main():
                     init_x=zeros,
                     init_y=zeros),
         ChemOscTest(name="noise_p",
-                    init_p=average_p*(ones + 0.1*np.random.rand(model.width, model.height)),
+                    init_p=average_p*(ones+noise(model.width, model.height, amplitude=0.1, seed=79565)),
                     init_q=average_q*ones,
                     init_x=average_p*ones,
                     init_y=zeros),
