@@ -65,6 +65,7 @@ class SimulationOutput:
 
         # retrieve relevant information
         values = np.swapaxes(self.values, 0, 1)[output_particle]
+        values = values[int(min_t / self.dt):int(max_t / self.dt), :, :]
         timestamps = np.linspace(min_t, max_t, num_frames)
         u = np.arange(0, self.width*self.ds, self.ds)
         v = np.arange(0, self.height*self.ds, self.ds)
@@ -107,6 +108,7 @@ class SimulationOutput:
         min_t = max(0.0, min_t)
 
         values = [list(np.swapaxes(self.values, 0, 1))[i] for i in output_particles]
+        values = [values[i][int(min_t / self.dt):int(max_t / self.dt), :, :] for i in output_particles]
         # get data for track_point
         u = np.arange(0, self.width*self.ds, self.ds)
         v = np.arange(0, self.height*self.ds, self.ds)
@@ -145,6 +147,7 @@ class SimulationOutput:
         min_t = max(0.0, min_t)
 
         values = [list(np.swapaxes(self.values, 0, 1))[i] for i in output_particles]
+        values = [values[i][int(min_t/self.dt):int(max_t/self.dt), :, :] for i in output_particles]
 
         # create a mesh for the space that we simulate over
         u = np.arange(0, self.width*self.ds, self.ds)
@@ -225,12 +228,12 @@ def frames_test(test_name):
     output_folder = "output"
     # parameters
     output_file_name = "framesTest"
-    min_t = 0
+    min_t = 10
     max_t = 30
     output_format = ".png"
-    output_particle = 0
+    output_particle = 3
     channel = r"$\hat y$"
-    num_frames = 17
+    num_frames = 20
 
     # generate the animation
     print(f"Loading test {test_name}...")
@@ -266,7 +269,7 @@ def animate_test(test_name):
     # parameters
     output_file_name = "animation"
     video_frame_rate = 30
-    video_t_per_second = 4
+    video_t_per_second = 2
     min_t = 0
     max_t = 30
     output_format = ".mp4"
@@ -307,8 +310,8 @@ def period_test(test_name):
 
 
 if __name__ == '__main__':
-    test_name = "gaussian_p"
+    test_name = "gaussian_q_20230512_183804"
     frames_test(test_name)
-    # animate_test(test_name)
-    track_test(test_name)
-    period_test(test_name)
+    #animate_test(test_name)
+    #track_test(test_name)
+    #period_test(test_name)
