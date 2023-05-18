@@ -131,7 +131,7 @@ class SimulationOutput:
 
     def grid_animation(self, video_frame_rate: int, video_t_per_second, filename: str,
                        channels: list[str], output_particles: list[int], min_t: float, max_t: float, track_point=None,
-                       output_width=16, output_height=10):
+                       output_width=14, output_height=8):
         """
         Visualizes the two-dimensional solution of a differential equation
         :param video_frame_rate: FPS of returned video
@@ -224,7 +224,7 @@ class SimulationOutput:
                                        frames=tot_frames,
                                        blit=True)
         # save
-        anim.save(filename, writer='ffmpeg', fps=video_frame_rate, dpi=output_width*output_height*2)
+        anim.save(filename, writer='ffmpeg', fps=video_frame_rate, dpi=output_width*output_height)
 
 
 def frames_test(test_name):
@@ -273,13 +273,13 @@ def animate_test(test_name):
     # parameters
     output_file_name = "animation"
     video_frame_rate = 30
-    video_t_per_second = 10
+    video_t_per_second = 20
     min_t = 0
-    max_t = 400
+    max_t = 800
     output_format = ".mp4"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
-    track_point = (1.5, 1.5)
+    track_point = None
 
     # generate the animation
     print(f"Loading test {test_name}...")
@@ -314,5 +314,7 @@ def period_test(test_name):
 
 
 if __name__ == '__main__':
-    test_name = "gaussian_p"
+    test_name = "gaussian_q_t_end=800"
+    animate_test(test_name)
+    test_name = "gaussian_p_t_end=800"
     animate_test(test_name)
