@@ -130,7 +130,8 @@ class SimulationOutput:
         plt.savefig(filename)
 
     def grid_animation(self, video_frame_rate: int, video_t_per_second, filename: str,
-                       channels: list[str], output_particles: list[int], min_t: float, max_t: float, track_point=None):
+                       channels: list[str], output_particles: list[int], min_t: float, max_t: float, track_point=None,
+                       output_width=16, output_height=10):
         """
         Visualizes the two-dimensional solution of a differential equation
         :param video_frame_rate: FPS of returned video
@@ -141,6 +142,8 @@ class SimulationOutput:
         :param min_t: time in the simulation to start the animation
         :param max_t: time in the simulation to end the animation
         :param track_point: optional (x, y) coordinates to show over time next to the other plots
+        :param output_width: width in inches if output video
+        :param output_height: height in inches of output video
         """
         # cap the min_t and max_t
         max_t = min(self.t_end, max_t)
@@ -215,12 +218,13 @@ class SimulationOutput:
             fig.colorbar(density, ax=density_axs[i])
             density_axs[i].set_title(f"{channels[i]} over time")
 
+        fig.set_size_inches(output_width, output_height, True)
         # run the animation
         anim = animation.FuncAnimation(fig, anim_func,
                                        frames=tot_frames,
                                        blit=True)
         # save
-        anim.save(filename, writer='ffmpeg', fps=video_frame_rate)
+        anim.save(filename, writer='ffmpeg', fps=video_frame_rate, dpi=output_width*output_height*2)
 
 
 def frames_test(test_name):
@@ -269,9 +273,9 @@ def animate_test(test_name):
     # parameters
     output_file_name = "animation"
     video_frame_rate = 30
-    video_t_per_second = 2
+    video_t_per_second = 10
     min_t = 0
-    max_t = 30
+    max_t = 400
     output_format = ".mp4"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
@@ -310,8 +314,5 @@ def period_test(test_name):
 
 
 if __name__ == '__main__':
-    test_name = "gaussian_q_20230512_183804"
-    frames_test(test_name)
-    #animate_test(test_name)
-    #track_test(test_name)
-    #period_test(test_name)
+    test_name = "gaussian_p"
+    animate_test(test_name)
