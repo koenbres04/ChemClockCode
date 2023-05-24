@@ -41,7 +41,7 @@ def horizontal_gradient(width, height, start, end):
 # create a (width,height)-shaped array of random noise
 def noise(width, height, amplitude, seed):
     np.random.seed(seed)
-    return amplitude * np.random.rand(width, height)
+    return amplitude*(-1+2 * np.random.rand(width, height))
 
 
 # create a (width,height)-shaped array with values from a gaussian
@@ -65,7 +65,7 @@ def main():
         nu=0
     )
     # set parameters of the simulation
-    t_end = 400
+    t_end = 800
     dt = 0.01
     # set parameters for the output video
     output_folder = "output"

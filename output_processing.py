@@ -232,8 +232,8 @@ def frames_test(test_name):
     output_folder = "output"
     # parameters
     output_file_name = "framesTest"
-    min_t = 10
-    max_t = 30
+    min_t = 0
+    max_t = 300
     output_format = ".png"
     output_particle = 3
     channel = r"$\hat y$"
@@ -253,7 +253,7 @@ def track_test(test_name):
     # parameters
     output_file_name = "track"
     min_t = 0
-    max_t = 30
+    max_t = 300
     output_format = ".png"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
@@ -290,15 +290,11 @@ def animate_test(test_name):
                                      channels, output_particles, min_t, max_t, track_point=track_point)
 
 
-def period_test(test_name):
-    output = SimulationOutput("output", test_name)
-    track_point = (1.5, 1.5)
-    track_particle = 3
-
+def find_local_maxima(sim_output, track_point, track_particle, min_value):
     # get data for track_point
-    values = np.swapaxes(output.values, 0, 1)[track_particle]
-    u = np.arange(0, output.width * output.ds, output.ds)
-    v = np.arange(0, output.height * output.ds, output.ds)
+    values = np.swapaxes(sim_output.values, 0, 1)[track_particle]
+    u = np.arange(0, sim_output.width * sim_output.ds, sim_output.ds)
+    v = np.arange(0, sim_output.height * sim_output.ds, sim_output.ds)
     i_u_nearest = (np.abs(u - track_point[0])).argmin()
     i_v_nearest = (np.abs(v - track_point[1])).argmin()
     track_values = values[:, i_u_nearest, i_v_nearest]
@@ -306,15 +302,32 @@ def period_test(test_name):
     # find maxima
     maximum_indices = []
     for i in range(1, len(track_values)-1):
-        if track_values[i] > track_values[i-1] and track_values[i] > track_values[i+1]:
+        if track_values[i] > max(track_values[i-1], track_values[i+1], min_value):
             maximum_indices.append(i)
-    periods = [output.dt*(maximum_indices[i]-maximum_indices[i-1]) for i in range(1, len(maximum_indices))]
-    for i, x in enumerate(periods):
-        print(f"Distance {x:.3f} between t={maximum_indices[i]*output.dt:.1f}, {maximum_indices[i+1]*output.dt:.1f}")
+
+    return np.array([i*sim_output.dt for i in maximum_indices], dtype=float)
+
+
+def period_test(test_names, output_file_name):
+    track_point = (1, 1)
+    track_particle = 3
+    output_folder = "output"
+    min_value = 1
+    y_range = (0, 20)
+    for test_name in test_names:
+        print(f"loading {test_name}...")
+        output = SimulationOutput(output_folder, test_name)
+        maxima = find_local_maxima(output, track_point, track_particle, min_value)
+        periods = np.array([maxima[i]-maxima[i-1] for i in range(1, len(maxima))], dtype=float)
+        plt.scatter(maxima[1:], periods, label=test_name, marker=".")
+    plt.xlabel("t")
+    plt.ylabel("distance to last local maximum")
+    plt.ylim(y_range)
+    plt.legend(loc="lower right")
+    plt.savefig(os.path.join(output_folder, output_file_name))
+    plt.clf()
 
 
 if __name__ == '__main__':
-    test_name = "gaussian_q_t_end=800"
-    animate_test(test_name)
-    test_name = "gaussian_p_t_end=800"
-    animate_test(test_name)
+    period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
+    period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
