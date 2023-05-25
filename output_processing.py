@@ -66,7 +66,7 @@ class SimulationOutput:
 
         # retrieve relevant information
         values = np.swapaxes(self.values, 0, 1)[output_particle]
-        values = values[int(min_t / self.dt):int(max_t / self.dt), :, :]
+        values = values[int(values.shape[0]*min_t / self.t_end):int(values.shape[0]*max_t / self.t_end), :, :]
         timestamps = np.linspace(min_t, max_t, num_frames)
         u = np.arange(0, self.width*self.ds, self.ds)
         v = np.arange(0, self.height*self.ds, self.ds)
@@ -76,7 +76,7 @@ class SimulationOutput:
         axs = list(axs.flatten())
         # initialize the density and normal plots and add a time text
         for t, ax in zip(timestamps, axs):
-            ax.pcolormesh(u, v, values[round((values.shape[0]-1)*t/max_t), :, :], cmap="viridis",
+            ax.pcolormesh(u, v, values[round((values.shape[0]-1)*(t-min_t)/(max_t-min_t)), :, :], cmap="viridis",
                           shading="auto",
                           vmin=np.min(values),
                           vmax=np.max(values))
@@ -233,19 +233,19 @@ def frames_test(test_name):
     output_folder = "output"
     # parameters
     output_file_name = "framesTest"
-    min_t = 0
-    max_t = 15
+    min_t = 200
+    max_t = 240
     output_format = ".png"
     output_particle = 3
     channel = r"$\hat y$"
-    num_frames = 19
+    num_frames = 35
 
     # generate the animation
     print(f"Loading test {test_name}...")
     simulation_output = SimulationOutput(output_folder, test_name)
     print(f"Animating...")
     simulation_output.plot_frames(simulation_output.unique_file_name(output_file_name, output_format),
-                                  channel, output_particle, min_t, max_t, num_frames)
+                                  channel, output_particle, min_t, max_t, num_frames, num_cols=6)
 
 
 def track_test(test_name):
@@ -333,5 +333,5 @@ if __name__ == '__main__':
     #period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
     #period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
     #track_test("homogenous")
-    frames_test("homogenous")
+    frames_test("gaussian_p")
 
