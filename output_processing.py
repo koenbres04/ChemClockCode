@@ -49,7 +49,7 @@ class SimulationOutput:
         return os.path.join(self.simulation_folder, f"{name}_{max_index+1}{extension}")
 
     def plot_frames(self, filename: str, channel: str, output_particle: int,
-                    min_t: float, max_t: float, num_frames: int):
+                    min_t: float, max_t: float, num_frames: int, num_cols=5):
         """
         Visualize the two-dimensional solution by plotting different slide timestamps next to each other
         :param filename: name of output file
@@ -58,6 +58,7 @@ class SimulationOutput:
         :param min_t: time in the simulation to start
         :param max_t: time in the simulation to stop
         :param num_frames: total number of frames we want to show
+        :param num_cols: number of columns
         """
         # cap the min_t and max_t
         max_t = min(self.t_end, max_t)
@@ -70,9 +71,8 @@ class SimulationOutput:
         u = np.arange(0, self.width*self.ds, self.ds)
         v = np.arange(0, self.height*self.ds, self.ds)
         # initialize the plot
-        num_cols = 5
-        num_rows = ceil(num_frames/5)
-        fig, axs = plt.subplots(num_rows, num_cols, sharex=True, sharey=True, figsize=(num_cols*4, num_rows*4))
+        num_rows = ceil(num_frames/num_cols)
+        fig, axs = plt.subplots(num_rows, num_cols, sharex=True, sharey=True, figsize=(num_cols*3, num_rows*3))
         axs = list(axs.flatten())
         # initialize the density and normal plots and add a time text
         for t, ax in zip(timestamps, axs):
@@ -115,13 +115,14 @@ class SimulationOutput:
         i_u_nearest = (np.abs(u - track_point[0])).argmin()
         i_v_nearest = (np.abs(v - track_point[1])).argmin()
         track_values = [value[:, i_u_nearest, i_v_nearest] for value in values]
-        num2shape = {"1": (1, 1, 6, 4), "2": (2, 1, 12, 8), "3": (3, 1, 12, 8), "4": (2, 2, 20, 15)}
+        num2shape = {"1": (1, 1, 6, 4), "2": (2, 1, 12, 8), "3": (3, 1, 12, 8), "4": (2, 2, 12, 8)}
         # amount of particles that are shown
         num_particles = len(values)
         # initialize figure and axis
         fig_shape = num2shape[str(num_particles)]
         fig, axs = plt.subplots(fig_shape[0], fig_shape[1],
-                                figsize=(fig_shape[2], fig_shape[3]))
+                                figsize=(fig_shape[2], fig_shape[3]),
+                                sharex=True)
         axs = list(axs.flatten())
         for i, ax in enumerate(axs):
             ax.plot(np.linspace(min_t, max_t, len(track_values[i])), track_values[i], color="black", linewidth=1.2)
@@ -233,11 +234,11 @@ def frames_test(test_name):
     # parameters
     output_file_name = "framesTest"
     min_t = 0
-    max_t = 300
+    max_t = 15
     output_format = ".png"
     output_particle = 3
     channel = r"$\hat y$"
-    num_frames = 20
+    num_frames = 19
 
     # generate the animation
     print(f"Loading test {test_name}...")
@@ -253,7 +254,7 @@ def track_test(test_name):
     # parameters
     output_file_name = "track"
     min_t = 0
-    max_t = 300
+    max_t = 50
     output_format = ".png"
     output_particles = [0, 1, 2, 3]
     channels = [r"$\hat p$", r"$\hat q$", r"$\hat x$", r"$\hat y$"]
@@ -273,7 +274,7 @@ def animate_test(test_name):
     # parameters
     output_file_name = "animation"
     video_frame_rate = 30
-    video_t_per_second = 20
+    video_t_per_second = 10
     min_t = 0
     max_t = 800
     output_format = ".mp4"
@@ -329,5 +330,8 @@ def period_test(test_names, output_file_name):
 
 
 if __name__ == '__main__':
-    period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
-    period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
+    #period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
+    #period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
+    #track_test("homogenous")
+    frames_test("homogenous")
+
