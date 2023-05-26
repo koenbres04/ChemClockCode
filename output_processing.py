@@ -4,7 +4,7 @@ import json
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib
-from math import ceil
+from math import ceil, sqrt
 
 
 class SimulationOutput:
@@ -329,9 +329,46 @@ def period_test(test_names, output_file_name):
     plt.clf()
 
 
-if __name__ == '__main__':
-    #period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
-    #period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
-    #track_test("homogenous")
-    frames_test("gaussian_p")
+def calculate_wave_speed(up, left, down, right, ds):
+    if left == right and up == down:
+        return np.NAN
+    up_delta = (up-down)/(2*ds)
+    right_delta = (right-left)/(2*ds)
+    return 1/sqrt(up_delta**2+right_delta**2)
 
+
+def wave_test(test_names, output_file_name):
+    track_point = (1, 1)
+    track_particle = 3
+    output_folder = "output"
+    min_value = 1
+    y_range = (0, 5)
+    for test_name in test_names:
+        print(f"loading {test_name}...")
+        output = SimulationOutput(output_folder, test_name)
+        maxima = find_local_maxima(output, track_point, track_particle, min_value)
+        right_maxima = find_local_maxima(output, (track_point[0]+output.ds, track_point[1]), track_particle, min_value)
+        left_maxima = find_local_maxima(output, (track_point[0]-output.ds, track_point[1]), track_particle, min_value)
+        up_maxima = find_local_maxima(output, (track_point[0], track_point[1]+output.ds), track_particle, min_value)
+        down_maxima = find_local_maxima(output, (track_point[0], track_point[1]-output.ds), track_particle, min_value)
+        wave_speeds = []
+        for t in maxima:
+            up = up_maxima[np.argmin(abs(up_maxima-t))]
+            down = down_maxima[np.argmin(abs(down_maxima-t))]
+            right = right_maxima[np.argmin(abs(right_maxima-t))]
+            left = left_maxima[np.argmin(abs(left_maxima-t))]
+            wave_speeds.append(calculate_wave_speed(up, left, down, right, output.ds))
+        plt.scatter(maxima, np.array(wave_speeds, dtype=float), label=test_name, marker=".")
+    plt.xlabel("t")
+    plt.ylabel("wave speed")
+    # plt.ylim(y_range)
+    plt.legend(loc="lower right")
+    plt.savefig(os.path.join(output_folder, output_file_name))
+    plt.clf()
+
+
+if __name__ == '__main__':
+    # period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
+    # period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
+    wave_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "wave_test_fig_p.png")
+    wave_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "wave_test_fig_q.png")
