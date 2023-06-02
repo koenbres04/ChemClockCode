@@ -322,7 +322,7 @@ def period_test(test_names, output_file_name):
         periods = np.array([maxima[i]-maxima[i-1] for i in range(1, len(maxima))], dtype=float)
         plt.scatter(maxima[1:], periods, label=test_name, marker=".")
     plt.xlabel("t")
-    plt.ylabel("distance to last local maximum")
+    plt.ylabel("time since last local maximum")
     plt.ylim(y_range)
     plt.legend(loc="lower right")
     plt.savefig(os.path.join(output_folder, output_file_name))
@@ -342,7 +342,7 @@ def wave_test(test_names, output_file_name):
     track_particle = 3
     output_folder = "output"
     min_value = 1
-    y_range = (0, 5)
+    y_range = (0, 4)
     for test_name in test_names:
         print(f"loading {test_name}...")
         output = SimulationOutput(output_folder, test_name)
@@ -361,14 +361,14 @@ def wave_test(test_names, output_file_name):
         plt.scatter(maxima, np.array(wave_speeds, dtype=float), label=test_name, marker=".")
     plt.xlabel("t")
     plt.ylabel("wave speed")
-    # plt.ylim(y_range)
+    plt.ylim(y_range)
     plt.legend(loc="lower right")
     plt.savefig(os.path.join(output_folder, output_file_name))
     plt.clf()
 
 
 if __name__ == '__main__':
-    # period_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "period_test_fig_p.png")
-    # period_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "period_test_fig_q.png")
-    wave_test(["homogenous", "gaussian_p", "gradient_p", "noise_p"], "wave_test_fig_p.png")
-    wave_test(["homogenous", "gaussian_q", "gradient_q", "noise_q"], "wave_test_fig_q.png")
+    period_test(["gaussian_p", "gradient_p", "noise_p", "homogenous"], "period_test_fig_p.png")
+    period_test(["gaussian_q", "gradient_q", "noise_q", "homogenous"], "period_test_fig_q.png")
+    wave_test(["gaussian_p", "gradient_p", "noise_p"], "wave_test_fig_p.png")
+    wave_test(["gaussian_q", "gradient_q", "noise_q"], "wave_test_fig_q.png")
